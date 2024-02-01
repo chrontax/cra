@@ -1,3 +1,7 @@
+//! Simple abstraction over archive formats.
+//!
+//! You can read and write archives in zip, 7z, and tar formats.
+
 use infer::get;
 use sevenz_rust::{nt_time::FileTime, Password, SevenZArchiveEntry, SevenZReader, SevenZWriter};
 use std::{
@@ -9,6 +13,7 @@ use thiserror::Error;
 use users::{get_current_gid, get_current_groupname, get_current_uid, get_current_username};
 use zip::{read::ZipFile, write::FileOptions, ZipArchive, ZipWriter};
 
+/// Enum representing supported archive formats
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ArcFormat {
     Zip,
@@ -29,6 +34,9 @@ impl TryFrom<infer::Type> for ArcFormat {
     }
 }
 
+/// Enum representing an archive entry
+///
+/// Can be a directory with a name or a file with a name and data.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ArcEntry {
     File(String, Vec<u8>),
@@ -60,6 +68,7 @@ impl From<TarEntry<'_, &[u8]>> for ArcEntry {
     }
 }
 
+/// Main error type for this library
 #[derive(Error, Debug)]
 #[error(transparent)]
 pub enum ArcError {
@@ -72,6 +81,7 @@ pub enum ArcError {
 
 pub type ArcResult<T> = Result<T, ArcError>;
 
+/// This struct allows you to easily read an archive
 pub struct ArcReader {
     format: ArcFormat,
     entries: Vec<ArcEntry>,
@@ -79,6 +89,7 @@ pub struct ArcReader {
 }
 
 impl ArcReader {
+    /// Takes the archive to read as a slice of bytes and reads it
     pub fn new(buf: &[u8]) -> ArcResult<Self> {
         let format = get(buf).unwrap().try_into()?;
         Ok(Self {
@@ -92,10 +103,12 @@ impl ArcReader {
         })
     }
 
+    /// Returns the format of the archive
     pub fn format(&self) -> ArcFormat {
         self.format
     }
 
+    /// Returns a reference to all archive entries
     pub fn entries(&self) -> &Vec<ArcEntry> {
         &self.entries
     }
@@ -148,12 +161,14 @@ impl Iterator for ArcReader {
     }
 }
 
+/// Struct for creating archives
 pub struct ArcWriter {
     pub format: ArcFormat,
     entries: Vec<ArcEntry>,
 }
 
 impl ArcWriter {
+    /// Returns a new writer for the specified archive format
     pub fn new(format: ArcFormat) -> Self {
         Self {
             format,
@@ -161,14 +176,17 @@ impl ArcWriter {
         }
     }
 
+    /// Adds an entry to the writer
     pub fn push(&mut self, entry: ArcEntry) {
         self.entries.push(entry)
     }
 
+    /// Adds all entries from slice to the writer
     pub fn extend(&mut self, entries: &[ArcEntry]) {
         self.entries.extend_from_slice(entries)
     }
 
+    /// Creates the finished archive
     pub fn archive(&self) -> ArcResult<Vec<u8>> {
         match self.format {
             ArcFormat::Zip => self.archive_zip(),
