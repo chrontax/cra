@@ -4,13 +4,9 @@
 
 use infer::get;
 use sevenz_rust::{nt_time::FileTime, Password, SevenZArchiveEntry, SevenZReader, SevenZWriter};
-use std::{
-    io::{self, Cursor, Read, Write},
-    time::{SystemTime, UNIX_EPOCH},
-};
-use tar::{Archive as TarArchive, Builder as TarBuilder, Entry as TarEntry, Header};
+use std::io::{self, Cursor, Read, Write};
+use tar::{Archive as TarArchive, Entry as TarEntry};
 use thiserror::Error;
-use uzers::{get_current_gid, get_current_groupname, get_current_uid, get_current_username};
 use zip::{read::ZipFile, write::SimpleFileOptions, ZipArchive, ZipWriter};
 
 /// Enum representing supported archive formats
@@ -187,6 +183,7 @@ impl ArcWriter {
     }
 
     /// Creates the finished archive
+    /// Panics on Windows if target format is `Tar`
     pub fn archive(&self) -> ArcResult<Vec<u8>> {
         match self.format {
             ArcFormat::Zip => self.archive_zip(),
@@ -215,7 +212,14 @@ impl ArcWriter {
         Ok(inner)
     }
 
+    #[cfg(not(target_os = "windows"))]
     fn archive_tar(&self) -> ArcResult<Vec<u8>> {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        use tar::{Builder as TarBuilder, Header};
+        use uzers::{
+            get_current_gid, get_current_groupname, get_current_uid, get_current_username,
+        };
+
         let mut inner = Vec::new();
         {
             let mut builder = TarBuilder::new(&mut inner);
@@ -251,6 +255,11 @@ impl ArcWriter {
             builder.finish()?;
         }
         Ok(inner)
+    }
+
+    #[cfg(target_os = "windows")]
+    fn archive_tar(&self) -> ArcResult<Vec<u8>> {
+        panic!("Cannot archive tar on Windows");
     }
 
     fn archive_7z(&self) -> ArcResult<Vec<u8>> {
