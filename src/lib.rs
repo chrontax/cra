@@ -272,11 +272,11 @@ impl ArcWriter {
             match entry {
                 ArcEntry::Directory(name) => {
                     szentry.is_directory = true;
-                    szentry.name = name.clone();
+                    szentry.name.clone_from(name);
                     archive.push_archive_entry::<&[u8]>(szentry, None)?;
                 }
                 ArcEntry::File(name, data) => {
-                    szentry.name = name.clone();
+                    szentry.name.clone_from(name);
                     archive.push_archive_entry(szentry, Some(&data[..]))?;
                 }
             }
