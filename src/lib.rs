@@ -10,8 +10,8 @@ use std::{
 };
 use tar::{Archive as TarArchive, Builder as TarBuilder, Entry as TarEntry, Header};
 use thiserror::Error;
-use users::{get_current_gid, get_current_groupname, get_current_uid, get_current_username};
-use zip::{read::ZipFile, write::FileOptions, ZipArchive, ZipWriter};
+use uzers::{get_current_gid, get_current_groupname, get_current_uid, get_current_username};
+use zip::{read::ZipFile, write::SimpleFileOptions, ZipArchive, ZipWriter};
 
 /// Enum representing supported archive formats
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -202,11 +202,11 @@ impl ArcWriter {
             for entry in &self.entries {
                 match entry {
                     ArcEntry::Directory(name) => {
-                        writer.add_directory(name, FileOptions::default())?
+                        writer.add_directory(name, SimpleFileOptions::default())?
                     }
                     ArcEntry::File(name, data) => {
-                        writer.start_file(name, FileOptions::default())?;
-                        writer.write_all(&data)?;
+                        writer.start_file(name.as_str(), SimpleFileOptions::default())?;
+                        writer.write_all(data)?;
                     }
                 }
             }

@@ -1,6 +1,6 @@
 [package]
 name = "cra"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Chrontax"]
 description = "Simple library for extracting/archiving in multiple formats fully in memory"
@@ -13,11 +13,11 @@ categories = ["Encoding"]
 
 [dependencies]
 infer = "0.15.0"
-sevenz-rust = "0.5.4"
+sevenz-rust = "0.6.0"
 tar = "0.4.40"
 thiserror = "1.0.56"
-users = "0.11.0"
-zip = "0.6.6"
+uzers = "0.12.0"
+zip = "1.1.4"
 
 [lib]
 path = "src/lib.rs"
