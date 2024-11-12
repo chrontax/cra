@@ -12,11 +12,11 @@ keywords = ["archive", "extract", "compress"]
 categories = ["Encoding"]
 
 [dependencies]
-infer = "0.15.0"
+infer = "0.16.0"
 sevenz-rust = "0.6.0"
 tar = "0.4.40"
-thiserror = "1.0.56"
-zip = "1.1.4"
+thiserror = "2.0.3"
+zip = "2.2.0"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 uzers = "0.12.0"
